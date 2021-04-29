@@ -21,7 +21,8 @@ class WhatsappMessage(object):
         self.sheet_id = kwargs.get('sheet_id')
         self.sheet_name = kwargs.get('sheet_name')
         self.image_path = kwargs.get('image_path')
-        self.url = f'https://docs.google.com/spreadsheets/d/{self.sheet_id}/export?format=xlsx&gid=1484715859'
+        self.sheet_gid = kwargs.get('sheet_gid')
+        self.url = f'https://docs.google.com/spreadsheets/d/{self.sheet_id}/export?format=xlsx&gid={self.sheet_gid}'
         self.excel_data = None
         self.driver = None
         self.driver_wait = None
@@ -42,6 +43,9 @@ class WhatsappMessage(object):
         # Load the chrome driver
         options = webdriver.ChromeOptions()
         options.add_argument(config.CHROME_PROFILE_PATH)
+        if config.os_name == 'Windows':
+            self.driver = webdriver.Chrome(executable_path=r'C:\Users\Nityam\AppData\Local\Programs\Python\Python39\chromedriver.exe',
+                                           options=options)
         self.driver = webdriver.Chrome(options=options)
 
         # Open WhatsApp URL in chrome browser
@@ -115,9 +119,9 @@ class WhatsappMessage(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Whatsapp Bulk Message Automation with optional Attachment feature')
-    parser.add_argument('sheet_id', help='Google Sheet Id', default='1fB1UHWOHXGTWQJ208UEiermUZ6MfOTZpqI_Tea8Vwqw',
-                        type=str)
-    parser.add_argument('sheet_name', help='Google Sheet name', default='Customers', type=str)
+    parser.add_argument('sheet_id', help='Google Sheet Id', type=str)
+    parser.add_argument('sheet_name', help='Google Sheet name', type=str)
+    parser.add_argument('sheet_gid', help='Google Sheet gid', type=int)
     parser.add_argument('--image-path', help='Full path of image attachment', type=str, dest='image_path')
     parsed_args = parser.parse_args()
     args = vars(parsed_args)
