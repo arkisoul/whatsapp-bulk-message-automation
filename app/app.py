@@ -1,39 +1,125 @@
 # Program to send bulk customized message through WhatsApp web application
 
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-import pandas
+from selenium.common.exceptions import NoSuchElementException
+import pandas as pd
 import time
+import config
+import argparse
 
-# Load the chrome driver
-driver = webdriver.Chrome()
 
-# Open WhatsApp URL in chrome browser
-driver.get("https://www.google.com")
+class WhatsappMessage(object):
+    """
+    A class that encapsulates Whatsapp Message automation
+    function and attributes
+    """
 
-# sheet_id = '1XqOtPkiE_Q0dfGSoyxrH730RkwrTczcRbDeJJpqRByQ'
-# sheet_name = 'sample_1'
-# url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
+    def __init__(self, **kwargs):
+        self.sheet_id = kwargs.get('sheet_id')
+        self.sheet_name = kwargs.get('sheet_name')
+        self.image_path = kwargs.get('image_path')
+        self.url = f'https://docs.google.com/spreadsheets/d/{self.sheet_id}/export?format=xlsx&gid=1484715859'
+        self.excel_data = None
+        self.driver = None
+        self.driver_wait = None
 
-sheet_url = 'https://docs.google.com/spreadsheets/d/1fB1UHWOHXGTWQJ208UEiermUZ6MfOTZpqI_Tea8Vwqw/edit#gid=1484715859'
-url = sheet_url.replace('/edit#gid=', '/export?format=csv&gid=')
+    def start_process(self):
+        try:
+            self.read_data()
+            self.load_driver()
+            self.process_message()
+        finally:
+            self.close_driver()
 
-# Read data from excel
-csv_data = pandas.read_csv(url)
-np_array = csv_data.to_numpy()
+    def read_data(self):
+        # Read data from excel
+        self.excel_data = pd.read_excel(self.url, sheet_name=self.sheet_name, engine='openpyxl')
 
-for row in np_array:
-    name = row[0]
-    number = row[1]
-    message = row[2]
-    user_url = f'https://web.whatsapp.com/send?phone={number}'
-    driver.get(user_url)
-    time.sleep(5)
-    actions = ActionChains(driver)
-    actions.send_keys(message)
-    actions.send_keys(Keys.ENTER)
-    actions.perform()
+    def load_driver(self):
+        # Load the chrome driver
+        options = webdriver.ChromeOptions()
+        options.add_argument(config.CHROME_PROFILE_PATH)
+        self.driver = webdriver.Chrome(options=options)
 
-# Close chrome browser
-driver.quit()
+        # Open WhatsApp URL in chrome browser
+        self.driver.get("https://web.whatsapp.com")
+        self.driver_wait = WebDriverWait(self.driver, 20)
+
+    def process_message(self):
+        count = 0
+        # Iterate excel rows till to finish
+        for column in self.excel_data['Contact'].tolist():
+            # Assign customized message
+            message = self.excel_data['Message'][0]
+
+            # Locate search box through x_path
+            search_box = '//*[@id="side"]/div[1]/div/label/div/div[2]'
+            person_title = self.driver_wait.until(lambda driver: driver.find_element_by_xpath(search_box))
+
+            # Clear search box if any contact number is written in it
+            person_title.clear()
+
+            # Send contact number in search box
+            contact_number = str(column)
+            person_title.send_keys(contact_number)
+
+            # Wait for 2 seconds to search contact number
+            time.sleep(2)
+
+            try:
+                # Load error message in case unavailability of contact number
+                self.driver.find_element_by_xpath('//*[@id="pane-side"]/div[1]/div/span')
+
+                user_url = f'https://web.whatsapp.com/send?phone={contact_number}'
+                self.driver.get(user_url)
+
+                # Wait for 5 seconds to load user chat message
+                time.sleep(5)
+
+            except NoSuchElementException:
+                person_title.send_keys(Keys.ENTER)
+
+            if self.image_path is not None:
+                attachment_button_path = '//div[@title="Attach"]'
+                attachment_button = self.driver_wait.until(lambda driver: driver.find_element_by_xpath(
+                    attachment_button_path))
+                attachment_button.click()
+                image_button_path = '//input[@accept="image/*,video/mp4,video/3gpp,video/quicktime"]'
+                image_button = self.driver_wait.until(lambda driver: driver.find_element_by_xpath(image_button_path))
+                image_button.send_keys(self.image_path)
+                time.sleep(3)
+                self.send_message(message)
+
+            else:
+                self.send_message(message)
+
+            time.sleep(1)
+            count = count + 1
+
+    def send_message(self, message):
+        # Format the message from excel sheet
+        # message = message.replace('{customer_name}', str(self.excel_data['Name'][count]))
+        actions = ActionChains(self.driver)
+        actions.send_keys(message)
+        actions.send_keys(Keys.ENTER)
+        # actions.perform()
+        time.sleep(2)
+
+    def close_driver(self):
+        # Close chrome browser
+        self.driver.quit()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Whatsapp Bulk Message Automation with optional Attachment feature')
+    parser.add_argument('sheet_id', help='Google Sheet Id', default='1fB1UHWOHXGTWQJ208UEiermUZ6MfOTZpqI_Tea8Vwqw',
+                        type=str)
+    parser.add_argument('sheet_name', help='Google Sheet name', default='Customers', type=str)
+    parser.add_argument('--image-path', help='Full path of image attachment', type=str, dest='image_path')
+    parsed_args = parser.parse_args()
+    args = vars(parsed_args)
+    whatsapp = WhatsappMessage(**args)
+    whatsapp.start_process()
