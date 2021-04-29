@@ -110,7 +110,7 @@ class WhatsappMessage(object):
         actions = ActionChains(self.driver)
         actions.send_keys(message)
         actions.send_keys(Keys.ENTER)
-        # actions.perform()
+        actions.perform()
         time.sleep(2)
 
     def close_driver(self):
