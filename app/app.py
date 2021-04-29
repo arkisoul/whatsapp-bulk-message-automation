@@ -46,7 +46,8 @@ class WhatsappMessage(object):
         if config.os_name == 'Windows':
             self.driver = webdriver.Chrome(executable_path=r'C:\Users\Nityam\AppData\Local\Programs\Python\Python39\chromedriver.exe',
                                            options=options)
-        self.driver = webdriver.Chrome(options=options)
+        else:
+            self.driver = webdriver.Chrome(options=options)
 
         # Open WhatsApp URL in chrome browser
         self.driver.get("https://web.whatsapp.com")
