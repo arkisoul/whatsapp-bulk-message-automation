@@ -41,6 +41,13 @@ pip install -e requirements.txt
         ```commandline
         python app/app.py --image-path='absolute/path/to/the/image' SHEET_ID SHEET_NAME SHEET_GID
         ```
+    
+### Google Sheet Reference
+Example Google sheet for your reference
+https://docs.google.com/spreadsheets/d/1fB1UHWOHXGTWQJ208UEiermUZ6MfOTZpqI_Tea8Vwqw/edit#gid=1484715859
+* Google Sheet ID = 1fB1UHWOHXGTWQJ208UEiermUZ6MfOTZpqI_Tea8Vwqw
+* Google Sheet Name = Customers
+* Google Sheet Gid = 1484715859
 
 Note: The script may not work in case if the HTML of web WhatsApp is changed.
 
