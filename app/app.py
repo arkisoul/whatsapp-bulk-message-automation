@@ -69,6 +69,8 @@ class WhatsappMessage(object):
 
             # Send contact number in search box
             contact_number = str(column)
+            if len(contact_number) == 10 or not contact_number.startswith('91'):
+                contact_number = '91' + contact_number
             person_title.send_keys(contact_number)
 
             # Wait for 2 seconds to search contact number
@@ -101,7 +103,7 @@ class WhatsappMessage(object):
             else:
                 self.send_message(message)
 
-            time.sleep(1)
+            time.sleep(3)
             count = count + 1
 
     def send_message(self, message):
