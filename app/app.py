@@ -69,6 +69,7 @@ class WhatsappMessage(object):
 
             # Send contact number in search box
             contact_number = str(column)
+
             if len(contact_number) == 10 or not contact_number.startswith('91'):
                 contact_number = '91' + contact_number
             person_title.send_keys(contact_number)
@@ -110,7 +111,15 @@ class WhatsappMessage(object):
         # Format the message from excel sheet
         # message = message.replace('{customer_name}', str(self.excel_data['Name'][count]))
         actions = ActionChains(self.driver)
-        actions.send_keys(message)
+        message = message.replace("\n", '__new_line__')
+        message = message.replace("\r", '__new_line__')
+        msg_lines = message.split('__new_line__')
+        msg_lines[:] = [msg for msg in msg_lines if msg.strip()]
+        for msg in msg_lines:
+            print(msg)
+            actions.send_keys(msg)
+            actions.key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(Keys.SHIFT).key_up(Keys.ENTER)
+            actions.key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(Keys.SHIFT).key_up(Keys.ENTER)
         actions.send_keys(Keys.ENTER)
         actions.perform()
         time.sleep(2)
