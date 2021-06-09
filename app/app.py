@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
+from random import randrange
 import pandas as pd
 import time
 import config
@@ -104,7 +105,8 @@ class WhatsappMessage(object):
             else:
                 self.send_message(message)
 
-            time.sleep(3)
+            timelapse = randrange(3, 10)
+            time.sleep(timelapse)
             count = count + 1
 
     def send_message(self, message):
@@ -116,7 +118,6 @@ class WhatsappMessage(object):
         msg_lines = message.split('__new_line__')
         msg_lines[:] = [msg for msg in msg_lines if msg.strip()]
         for msg in msg_lines:
-            print(msg)
             actions.send_keys(msg)
             actions.key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(Keys.SHIFT).key_up(Keys.ENTER)
             actions.key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(Keys.SHIFT).key_up(Keys.ENTER)
