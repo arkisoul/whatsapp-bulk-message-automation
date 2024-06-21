@@ -5,8 +5,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
-from random import randrange
 import pandas as pd
+from random import randrange
+from os import path
 import time
 import config
 import argparse
@@ -92,7 +93,7 @@ class WhatsappMessage(object):
                 self.driver.get(user_url)
 
                 # Wait for 5 seconds to load user chat message
-                time.sleep(5)
+                time.sleep(30)
 
             except NoSuchElementException:
                 person_title.send_keys(Keys.ENTER)
@@ -139,7 +140,7 @@ class WhatsappMessage(object):
         self.driver.quit()
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Whatsapp Bulk Message Automation with optional Attachment feature')
     parser.add_argument('sheet_id', help='Google Sheet Id', type=str)
@@ -151,3 +152,7 @@ if __name__ == '__main__':
     args = vars(parsed_args)
     whatsapp = WhatsappMessage(**args)
     whatsapp.start_process()
+
+
+if __name__ == '__main__':
+    main()
